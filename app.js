@@ -2,11 +2,13 @@ const express = require("express");
 const app = express();
 
 const { NotFoundError } = require("./expressError");
+// const { items } = require("./fakeDb");
+const itemRoutes = require("./itemRoutes")
 
 app.use(express.json()); // process JSON data
 app.use(express.urlencoded()); // process trad form data
+app.use("/items", itemRoutes);
 
-// ... your routes go here ...
 
 // handle site-wide 404s
 app.use(function (req, res) {
