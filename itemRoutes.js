@@ -1,6 +1,7 @@
 const express = require("express");
 
 const { items } = require("./fakeDb");
+const { NotFoundError } = require("./expressError");
 const router = new express.Router();
 
 
@@ -15,28 +16,30 @@ router.post("/", function (req, res) {
 
   items.push(req.body);
 
-  return res.json({ added: req.body });
+  return res.status(201).
+  json({ added: req.body });
 });
 
 /** return single item */
 router.get("/:name", function (req, res) {
 
-  const item = items[req.params];
-
-  return res.json({ item });
+  const item = items.find(i => i.name === req.params.name);
+  console.log(item);
+  if (item) {
+return res.json( item );
+  }
+  else {
+    throw new NotFoundError()
+  }
 });
 
 /** accept JSON body, modify item, return it */
 router.patch("/:name", function (req, res) {
 
   const name = req.params.name;
-  let item = {};
 
-  for (const i of items) {
-    if (i.name === name) {
-      item = i;
-    }
-  }
+  const item = items.find(i => i.name === name);
+  console.log(item);
 
   if (item) {
     const data = req.body;
@@ -45,9 +48,12 @@ router.patch("/:name", function (req, res) {
         item[key] = data[key];
       }
     }
+    return res.json({ updated: item });
+  }
+  else {
+    throw new NotFoundError();
   }
 
-  return res.json({ updated: item });
 });
 
 /** delete item */
@@ -55,13 +61,14 @@ router.delete("/:name", function (req, res) {
 
   const name = req.params.name;
 
-  for (let i in items) {
-    if (items[i].name === name) {
-      items.splice(i, 1);
-    }
+  const itemIndex = items.findIndex(i => i.name === name);
+  if (itemIndex > -1) {
+    items.splice(itemIndex, 1);
+    return res.json({ message: "Deleted" });
   }
-
-  return res.json({ message: "Deleted" });
+  else {
+    throw new NotFoundError();
+  }
 });
 
 module.exports = router;
